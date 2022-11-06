@@ -12,13 +12,14 @@ from typing import List
 from xml.etree import ElementTree
 
 # UPDATE THIS EVERY TIME A NEW RELEASE IS PACKAGED
-VERSION = "2.0.3"
+VERSION = "2.0.3-RO1"
 
 # Spyglass
 # Source code by Devi aka Panzer Vier
 # Modifications made by Khronion (KH)
 # Ported to Python 3 with additional modifications by Zizou (Ziz)
 # Yay more modifications (Aav)
+# Regional Officer column (optional) added by Merni.
 
 log_path = "debug.log"
 
@@ -74,7 +75,7 @@ def download_dump() -> None:
 # Show help message and terminate
 if "-h" in argv or "--help" in argv:
     print(f"Spyglass {VERSION}: Generate NationStates region update timesheets.\n")
-    print("Developed by Panzer Vier, with additions by Khronion, Zizou, and Aav\n")
+    print("Developed by Panzer Vier, with additions by Khronion, Zizou, Aav and Merni\n")
     print(f"usage: {argv[0]} [-h] [-n NATION] [-o OUTFILE] [-s | -l PATH]\n")
     print(
         """Optional arguments:
@@ -89,6 +90,7 @@ if "-h" in argv or "--help" in argv:
      -m           Generate a minimized sheet without WFEs and embassies
      -maj LENGTH  Specify custom length of major update, in seconds.
      -min LENGTH  Specify custom length of minor update, in seconds.
+     -ro          Enable regional officer column
     """
     )
     print(
@@ -100,6 +102,7 @@ working directory."""
 interactive = True
 process_embassies = True
 log = True
+process_officers = False
 
 SpeedOverride = False
 MinorTime = 3550
@@ -118,6 +121,8 @@ if "-n" in argv:
         MajorTime = int(argv[argv.index("-maj") + 1])
     if "-min" in argv or "-maj" in argv:
         SpeedOverride = True
+    if "-ro" in argv:
+        process_officers = True
 
 else:
     print(f"Spyglass {VERSION}: Generate NationStates region update timesheets.")
@@ -144,6 +149,9 @@ else:
         except ValueError:
             MajorTime = 5350
         SpeedOverride = True
+
+    if query("Include regional officers? (y/n, defaults to n) ", ["y", "n", ""]) == "y":
+        process_officers = True
 
 # Set output filename
 if "-o" in argv:
@@ -246,6 +254,7 @@ NumNationList = list()
 DelVoteList = list()
 ExecList = list()
 MajorList = list()
+OfficerList = list()
 
 # Sanitize our founderless regions list a wee bit, 'cause at the moment, it's xml, and xml is gross.
 print("Processing data...")
@@ -273,6 +282,7 @@ names = [region.find("NAME") for region in region_list]
 num_nations = [region.find("NUMNATIONS") for region in region_list]
 delvotes = [region.find("DELEGATEVOTES") for region in region_list]
 delauth = [region.find("DELEGATEAUTH") for region in region_list]
+
 for name, nation_count, del_votes, auth in zip(
         names, num_nations, delvotes, delauth
 ):
@@ -307,6 +317,18 @@ for region_embassies in [d.find("EMBASSIES") for d in region_list]:
         for embassy in region_embassies.findall("EMBASSY"):
             embassies.append(embassy.text)
     RegionEmbassyList.append(",".join(embassies))
+
+# Merni: Process ROs
+for region in region_list:
+    OfficerString = ""
+    if process_officers:
+        for officer in region.iter("OFFICER"):
+            offnation = officer.find("NATION").text
+            offtitle = officer.find("OFFICE").text
+            if offtitle is None: offtitle = ""
+            OfficerString += (offnation + " : " + offtitle + ", ")
+    if OfficerString == "": OfficerString = " " # To prevent overflow of WFE if there is no RO
+    OfficerList += [OfficerString]
 
 # Determine the total duration in seconds of minor and major
 if not SpeedOverride:
@@ -368,27 +390,28 @@ ws["H1"].value = "Del. Endos"
 if process_embassies:
     ws["I1"].value = "Embassies"
 ws["J1"].value = "WFE"
+ws["K1"].value = "ROs"
 
-ws["L1"].value = "World "
-ws["M1"].value = "Data"
-ws["L2"].value = "Nations"
-ws["L3"].value = "Last Major"
-ws["L4"].value = "Secs/Nation"
-ws["L5"].value = "Nations/Sec"
-ws["L6"].value = "Last Minor"
-ws["L7"].value = "Secs/Nation"
-ws["L8"].value = "Nations/Sec"
-ws["L10"].value = "Spyglass Version"
-ws["L11"].value = "Date Generated"
-ws["M2"].value = CumulNations
-ws["M3"].value = major
-ws["M4"].value = major / CumulNations
-ws["M5"].value = 1 / (major / CumulNations)
-ws["M6"].value = MinorTime
-ws["M7"].value = MinorNatTime
-ws["M8"].value = 1 / MinorNatTime
-ws["M10"].value = VERSION
-ws["M11"].value = YMD
+ws["M1"].value = "World "
+ws["N1"].value = "Data"
+ws["M2"].value = "Nations"
+ws["M3"].value = "Last Major"
+ws["M4"].value = "Secs/Nation"
+ws["M5"].value = "Nations/Sec"
+ws["M6"].value = "Last Minor"
+ws["M7"].value = "Secs/Nation"
+ws["M8"].value = "Nations/Sec"
+ws["M10"].value = "Spyglass Version"
+ws["M11"].value = "Date Generated"
+ws["N2"].value = CumulNations
+ws["N3"].value = major
+ws["N4"].value = major / CumulNations
+ws["N5"].value = 1 / (major / CumulNations)
+ws["N6"].value = MinorTime
+ws["N7"].value = MinorNatTime
+ws["N8"].value = 1 / MinorNatTime
+ws["N10"].value = VERSION
+ws["N11"].value = YMD
 
 # There's probably a better way of doing this, but my coding skills are dubious :^)
 # Anyways, actually pasting the information from our various lists into the spreadsheet.
@@ -427,7 +450,8 @@ for counter, a in enumerate(RegionList):
     ws.cell(row=counter + 2, column=8).value = DelVoteList[counter] - 1
     ws.cell(row=counter + 2, column=9).value = RegionEmbassyList[counter]
     ws.cell(row=counter + 2, column=10).value = RegionWFEList[counter]
-    ws.cell(row=counter + 2, column=11).value = " "
+    ws.cell(row=counter + 2, column=11).value = OfficerList[counter]
+    ws.cell(row=counter + 2, column=12).value = " "
 
     # Highlight delegate-less regions. They're good for tagging, or whatever~
     if DelVoteList[counter] == 0:

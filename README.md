@@ -1,16 +1,5 @@
-<<<<<<< HEAD
-The RO2 version also adds a column for the powers that the region's delegate has. Earlier you could only see whether the delegate was executive or non-executive. - Merni, Sept. 2021.
+This version adds an optional column with details of regional officers.
 
-This version adds a last column which contains a list of regional officers and their titles, sometimes useful in detagging.
-The interactive input asks you if you want this.
-Provide command line option -f to disable the officer saving.
-The readme was modified to add this section. [Latest release](https://github.com/merni-ns/Spyglass/releases)
-No other changes were made from Khronion's code.- Merni, August 2021.
-
-**Important**: Old versions of Spyglass have a code injection vulnerability. [Version 1.4.4 patches this vulnerability.](https://github.com/khronion/Spyglass/releases/tag/v1.4.4)
-
-=======
->>>>>>> 5c24e4afa06c46d7cf6bf4ae6a3d06fe10cb49f0
 # Spyglass
 Spyglass generates Excel Spreadsheets that can be used to predict the update time of a NationStates region, usually to coordinate an invasion, liberation, or other military gameplay action.
 
@@ -20,13 +9,8 @@ Spyglass generates Excel Spreadsheets that can be used to predict the update tim
 
 To learn more about what information Spyglass provides, [view the documentation](docs/interpreting_sheets.md).
 
-<<<<<<< HEAD
-
-## Running Spyglass
-=======
 ## Usage
 Windows and macOS users should use the pre-packaged release files for their operating system. These versions contain all the files needed to run Spyglass. Linux users should see the [instructions for setting up a development environment](docs/dev_environment.md).
->>>>>>> 5c24e4afa06c46d7cf6bf4ae6a3d06fe10cb49f0
 
 > **Important note**: Microsoft Defender Smartscreen may block execution of programs it doesn't recognize, like Spyglass. You may bypass these warnings by clicking "Run Anyway" on the Smartscreen warning dialog.
 
@@ -72,3 +56,5 @@ Spyglass version 2.0 and onward are licensed under the terms of the [GNU General
 ## Credits
 
 Spyglass was originally developed by Devi and is now maintained by [Devi](https://github.com/Derpseh/), [Khronion](https://github.com/khronion), [Zizou](https://github.com/Aptenodyte), and [Aav](https://github.com/AavHRF). The icon was contributed by [Vleerian](https://github.com/vleerian/).
+
+The regional officer column was added by [Merni](https://www.nationstates.net/merni).
